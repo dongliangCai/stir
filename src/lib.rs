@@ -4,5 +4,6 @@ pub mod fri;
 pub mod ldt;
 pub mod parameters;
 pub mod poly_utils;
+pub mod rstir;
 pub mod stir;
 pub mod utils;

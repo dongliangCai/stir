@@ -1,0 +1,381 @@
+benchmark.log benchmark.sh serial_test.sh
+Degree: 18, Rate: 1
+   Compiling autocfg v1.1.0
+   Compiling proc-macro2 v1.0.66
+   Compiling unicode-ident v1.0.11
+   Compiling version_check v0.9.4
+   Compiling libc v0.2.149
+   Compiling cfg-if v1.0.0
+   Compiling typenum v1.16.0
+   Compiling subtle v2.5.0
+   Compiling ppv-lite86 v0.2.17
+   Compiling syn v1.0.109
+   Compiling once_cell v1.18.0
+   Compiling either v1.9.0
+   Compiling paste v1.0.14
+   Compiling arrayvec v0.7.4
+   Compiling zerocopy v0.7.32
+   Compiling itertools v0.12.0
+   Compiling tracing-core v0.1.32
+   Compiling allocator-api2 v0.2.16
+   Compiling utf8parse v0.2.1
+   Compiling pin-project-lite v0.2.13
+   Compiling generic-array v0.14.7
+   Compiling ahash v0.8.7
+   Compiling anyhow v1.0.79
+   Compiling num-traits v0.2.16
+   Compiling num-integer v0.1.45
+   Compiling num-bigint v0.4.4
+   Compiling num-iter v0.1.43
+   Compiling num-rational v0.4.1
+   Compiling tracing v0.1.39
+   Compiling tracing-subscriber v0.2.25
+   Compiling anstyle-parse v0.2.3
+   Compiling crypto-common v0.1.6
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling serde v1.0.193
+   Compiling colorchoice v1.0.0
+   Compiling anstyle-query v1.0.2
+   Compiling anstyle v1.0.4
+   Compiling quote v1.0.33
+   Compiling syn v2.0.31
+   Compiling anstream v0.6.7
+   Compiling getrandom v0.2.10
+   Compiling rand_core v0.6.4
+   Compiling rand_chacha v0.3.1
+   Compiling cpufeatures v0.2.9
+   Compiling rand v0.8.5
+   Compiling keccak v0.1.4
+   Compiling ark-std v0.4.0 (https://github.com/arkworks-rs/std#4cee4bc1)
+   Compiling num-complex v0.4.4
+   Compiling strsim v0.10.0
+   Compiling serde_json v1.0.109
+   Compiling byteorder v1.5.0
+   Compiling clap_lex v0.6.0
+   Compiling derivative v2.2.0
+   Compiling heck v0.4.1
+   Compiling hashbrown v0.14.3
+   Compiling clap_builder v4.4.17
+   Compiling sha2 v0.10.8
+   Compiling blake2 v0.10.6
+   Compiling cc v1.0.83
+   Compiling ryu v1.0.16
+   Compiling itoa v1.0.10
+   Compiling arrayref v0.3.7
+   Compiling constant_time_eq v0.3.0
+   Compiling sha3 v0.10.8
+   Compiling itertools v0.13.0
+   Compiling lazy_static v1.4.0
+   Compiling zeroize_derive v1.4.2
+   Compiling ark-serialize-derive v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling ark-ff-asm v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling ark-ff-macros v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling blake3 v1.5.0
+   Compiling serde_derive v1.0.193
+   Compiling num v0.4.1
+   Compiling ark-serialize v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling ark-crypto-primitives-macros v0.4.0 (https://github.com/arkworks-rs/crypto-primitives#fc1c9491)
+   Compiling clap_derive v4.4.7
+   Compiling zeroize v1.6.0
+   Compiling clap v4.4.17
+   Compiling ark-ff v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling merlin v3.0.0
+   Compiling ark-poly v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling ark-relations v0.4.0
+   Compiling poseidon-parameters v0.4.0
+   Compiling poseidon-paramgen v0.4.0
+   Compiling ark-snark v0.4.0
+   Compiling ark-ec v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling ark-crypto-primitives v0.4.0 (https://github.com/arkworks-rs/crypto-primitives#fc1c9491)
+   Compiling ark-test-curves v0.4.2 (https://github.com/arkworks-rs/algebra#bf96a5b2)
+   Compiling stir v0.1.0 (/Users/charles.cai/Desktop/stir)
+    Finished `release` profile [optimized + debuginfo] target(s) in 13.05s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 18 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^18, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 2. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7
+PoW bits: [22, 20, 16]
+Repetitions: [106, 27, 16]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 1.717351s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 114685
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^18, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 3
+PoW bits: 22
+Repetitions: 106
+
+[src/bin/prover.rs:183:9] fri_prover_time = 999.393291ms
+[src/bin/prover.rs:184:9] fri_prover_hashes = 149756
+   Compiling stir v0.1.0 (/Users/charles.cai/Desktop/stir)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1.59s
+     Running `/Users/charles.cai/Desktop/stir/target/release/verifier -d 18 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^18, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 2. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7
+PoW bits: [22, 20, 16]
+Repetitions: [106, 27, 16]
+
+STIR verifier time: 1.872168ms
+STIR verifier hashes: 1434
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^18, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 3
+PoW bits: 22
+Repetitions: 106
+
+FRI verifier time: 1.178323ms
+FRI verifier hashes: 2490
+benchmark.log benchmark.sh outputs serial_test.sh
+benchmark.log benchmark.sh outputs serial_test.sh
+Degree: 20, Rate: 1
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.09s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 20 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^20, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 3. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10
+PoW bits: [22, 20, 16, 18]
+Repetitions: [106, 27, 16, 11]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 1.538992959s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 491516
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^20, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 4
+PoW bits: 22
+Repetitions: 106
+
+[src/bin/prover.rs:183:9] fri_prover_time = 2.441374958s
+[src/bin/prover.rs:184:9] fri_prover_hashes = 599163
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.08s
+     Running `/Users/charles.cai/Desktop/stir/target/release/verifier -d 20 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^20, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 3. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10
+PoW bits: [22, 20, 16, 18]
+Repetitions: [106, 27, 16, 11]
+
+STIR verifier time: 2.147951ms
+STIR verifier hashes: 1846
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^20, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 4
+PoW bits: 22
+Repetitions: 106
+
+FRI verifier time: 1.463489ms
+FRI verifier hashes: 3466
+benchmark.log benchmark.sh outputs serial_test.sh
+benchmark.log benchmark.sh outputs serial_test.sh
+Degree: 22, Rate: 1
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.08s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 22 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^22, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 3. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10
+PoW bits: [22, 20, 16, 18]
+Repetitions: [106, 27, 16, 11]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 6.63285825s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 1966076
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^22, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 5
+PoW bits: 22
+Repetitions: 106
+
+[src/bin/prover.rs:183:9] fri_prover_time = 7.116559875s
+[src/bin/prover.rs:184:9] fri_prover_hashes = 2396730
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.09s
+     Running `/Users/charles.cai/Desktop/stir/target/release/verifier -d 22 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^22, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 3. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10
+PoW bits: [22, 20, 16, 18]
+Repetitions: [106, 27, 16, 11]
+
+STIR verifier time: 2.260298ms
+STIR verifier hashes: 2191
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^22, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 5
+PoW bits: 22
+Repetitions: 106
+
+FRI verifier time: 1.865535ms
+FRI verifier hashes: 4494
+benchmark.log benchmark.sh outputs serial_test.sh
+benchmark.log benchmark.sh outputs serial_test.sh
+Degree: 24, Rate: 1
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.08s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 24 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^24, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 4. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10, 2^-13
+PoW bits: [22, 20, 16, 18, 11]
+Repetitions: [106, 27, 16, 11, 9]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 25.257281792s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 8126459
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^24, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 5
+PoW bits: 22
+Repetitions: 106
+
+[src/bin/prover.rs:183:9] fri_prover_time = 22.002327792s
+[src/bin/prover.rs:184:9] fri_prover_hashes = 9586938
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.21s
+     Running `/Users/charles.cai/Desktop/stir/target/release/verifier -d 24 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^24, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 4. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10, 2^-13
+PoW bits: [22, 20, 16, 18, 11]
+Repetitions: [106, 27, 16, 11, 9]
+
+STIR verifier time: 2.47234ms
+STIR verifier hashes: 2645
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^24, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 5
+PoW bits: 22
+Repetitions: 106
+
+FRI verifier time: 2.11023ms
+FRI verifier hashes: 5647
+benchmark.log benchmark.sh outputs serial_test.sh
+benchmark.log benchmark.sh outputs serial_test.sh
+Degree: 26, Rate: 1
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.08s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 26 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^26, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 4. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10, 2^-13
+PoW bits: [22, 20, 16, 18, 11]
+Repetitions: [106, 27, 16, 11, 9]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 110.069914834s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 32505851
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^26, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 6
+PoW bits: 22
+Repetitions: 106
+
+[src/bin/prover.rs:183:9] fri_prover_time = 76.542635625s
+[src/bin/prover.rs:184:9] fri_prover_hashes = 38347897
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.24s
+     Running `/Users/charles.cai/Desktop/stir/target/release/verifier -d 26 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^26, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 4. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10, 2^-13
+PoW bits: [22, 20, 16, 18, 11]
+Repetitions: [106, 27, 16, 11, 9]
+
+STIR verifier time: 2.580727ms
+STIR verifier hashes: 2992
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^26, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 6
+PoW bits: 22
+Repetitions: 106
+
+FRI verifier time: 2.65449ms
+FRI verifier hashes: 7100
+benchmark.log benchmark.sh outputs serial_test.sh
+benchmark.log benchmark.sh outputs serial_test.sh
+Degree: 28, Rate: 1
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.08s
+     Running `/Users/charles.cai/Desktop/stir/target/release/prover -d 28 -r 1 --reps 1000`
+=========================================
+STIR - Shaken
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^28, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 16
+Number of rounds: 5. OOD samples: 2
+Rates: 2^-1, 2^-4, 2^-7, 2^-10, 2^-13, 2^-16
+PoW bits: [22, 20, 16, 18, 11, 16]
+Repetitions: [106, 27, 16, 11, 9, 7]
+
+[src/bin/prover.rs:127:9] stir_prover_time = 555.412873333s
+[src/bin/prover.rs:128:9] stir_prover_hashes = 132120570
+=========================================
+FRI
+Targeting 128-bits of security - protocol running at 106-bits - soundness: Conjecture
+Starting degree: 2^28, stopping_degree: 2^6
+Starting rate: 2^-1, folding_factor: 8
+Number of rounds: 7
+PoW bits: 22
+Repetitions: 106
+

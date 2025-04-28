@@ -2,24 +2,22 @@ use ark_crypto_primitives::{
     merkle_tree::{Config, MerkleTree},
     sponge::{Absorb, CryptographicSponge},
 };
-use ark_ff::{FftField, PrimeField};
+use ark_ff::{FftField, Field, PrimeField};
 use ark_poly::{univariate::DensePolynomial, DenseUVPolynomial, EvaluationDomain, Polynomial};
-use ark_std::{end_timer, start_timer};
+use ark_std::log2;
 use derivative::Derivative;
 
-use crate::{
-    ldt::Prover,
-    poly_utils::{self, fft::evaluate_polynomial},
-    stir::{common::*, parameters::FullParameters},
-    utils,
-};
+use crate::{domain::Domain, ldt::Prover, parameters::Parameters, poly_utils, utils};
 
-use crate::{domain::Domain, parameters::Parameters};
+use super::{
+    common::{Commitment, Proof, RoundProof},
+    parameters::FullParameters,
+};
 
 #[derive(Derivative)]
 #[derivative(Clone(bound = "F: Clone"))]
 pub struct Witness<F: FftField, MerkleConfig: Config> {
-    pub(crate) domain: Domain<F>,
+    pub(crate) domain: Vec<F>,
     pub(crate) polynomial: DensePolynomial<F>,
     pub(crate) merkle_tree: MerkleTree<MerkleConfig>,
     pub(crate) folded_evals: Vec<Vec<F>>,
@@ -29,7 +27,7 @@ pub struct Witness<F: FftField, MerkleConfig: Config> {
 #[derivative(Debug)]
 pub struct WitnessExtended<F: FftField, MerkleConfig: Config> {
     #[derivative(Debug = "ignore")]
-    pub(crate) domain: Domain<F>,
+    pub(crate) domain: Vec<F>,
     pub(crate) polynomial: DensePolynomial<F>,
 
     #[derivative(Debug = "ignore")]
@@ -37,10 +35,9 @@ pub struct WitnessExtended<F: FftField, MerkleConfig: Config> {
     #[derivative(Debug = "ignore")]
     pub(crate) folded_evals: Vec<Vec<F>>,
     pub(crate) num_round: usize,
-    pub(crate) folding_randomness: F,
 }
 
-pub struct StirProver<F, MerkleConfig, FSConfig>
+pub struct RstirProver<F, MerkleConfig, FSConfig>
 where
     F: FftField,
     MerkleConfig: Config,
@@ -51,7 +48,7 @@ where
 }
 
 impl<F, MerkleConfig, FSConfig> Prover<F, MerkleConfig, FSConfig>
-    for StirProver<F, MerkleConfig, FSConfig>
+    for RstirProver<F, MerkleConfig, FSConfig>
 where
     F: FftField + PrimeField + Absorb,
     MerkleConfig: Config<Leaf = Vec<F>>,
@@ -79,33 +76,30 @@ where
         &self,
         witness_polynomial: DensePolynomial<F>,
     ) -> (Commitment<MerkleConfig>, Witness<F, MerkleConfig>) {
+        //TODO: random select domain L^(0)?
         let domain = Domain::<F>::new(
             self.parameters.starting_degree,
             self.parameters.starting_rate,
         )
         .unwrap();
 
-        let real = start_timer!(||"real compute fft");
+        let n = domain.size();
+        let w = domain.root_of_unity;
+
+        //1, w, w^2,..., w^(n-1)
+        let vec_domain: Vec<F> = std::iter::successors(Some(F::ONE), |&prev| Some(prev * w))
+            .take(n)
+            .collect();
+
+        //evals:h^(0)   witness_polynomial:\hat{h}^(0)
         let evals = witness_polynomial
             .evaluate_over_domain_by_ref(domain.backing_domain)
             .evals;
-        end_timer!(real);
 
-        let elements :Vec<F> = domain.backing_domain.elements().collect();
+        //h^(0) is not folded
+        let folded_evals = utils::stack_evaluations(evals, 1);
 
-        let naive = start_timer!(||"naive compute fft");
-        for point in elements.iter() {
-            witness_polynomial.evaluate(&point);
-            //assert_eq!(evaluated_values[i], expected);
-        }
-        end_timer!(naive);
-
-        let fast = start_timer!(||"fast compute fft");
-        evaluate_polynomial(&witness_polynomial, &elements);
-        end_timer!(fast);
-
-        let folded_evals = utils::stack_evaluations(evals, self.parameters.folding_factor);
-
+        //oracle of h^(0): L^(0) -> Fq
         let merkle_tree = MerkleTree::<MerkleConfig>::new(
             &self.parameters.leaf_hash_params,
             &self.parameters.two_to_one_params,
@@ -120,7 +114,7 @@ where
                 root: initial_commitment,
             },
             Witness {
-                domain,
+                domain: vec_domain,
                 polynomial: witness_polynomial,
                 merkle_tree,
                 folded_evals,
@@ -132,9 +126,8 @@ where
         assert!(witness.polynomial.degree() < self.parameters.starting_degree);
 
         let mut sponge = FSConfig::new(&self.parameters.fiat_shamir_config);
-        // TODO: Add parameters to FS
+        //Add parameters to FS
         sponge.absorb(&witness.merkle_tree.root());
-        let folding_randomness = sponge.squeeze_field_elements(1)[0];
 
         let mut witness = WitnessExtended {
             domain: witness.domain,
@@ -142,24 +135,30 @@ where
             merkle_tree: witness.merkle_tree,
             folded_evals: witness.folded_evals,
             num_round: 0,
-            folding_randomness,
         };
 
         let mut round_proofs = vec![];
+        let domain_size = self.parameters.starting_degree * (1 << self.parameters.starting_rate);
+        let mut ni = domain_size / self.parameters.folding_factor;
+
+        let kth_rou = F::get_root_of_unity(self.parameters.folding_factor as u64).unwrap();
+
+        //1, w_k^1, ... w_k^(k-1)
+        let rou_powers = std::iter::successors(Some(F::ONE), |&prev| Some(prev * kth_rou))
+            .take(self.parameters.folding_factor)
+            .collect();
+
         for _ in 0..self.parameters.num_rounds {
-            let (new_witness, round_proof) = self.round(&mut sponge, &witness);
+            let (new_witness, round_proof) = self.round(ni, &rou_powers, &mut sponge, &witness);
             witness = new_witness;
+            ni = ni / 2;
             round_proofs.push(round_proof);
         }
 
-        let final_polynomial = poly_utils::folding::poly_fold(
-            &witness.polynomial,
-            self.parameters.folding_factor,
-            witness.folding_randomness,
-        );
+        let final_polynomial = witness.polynomial;
 
         let final_repetitions = self.parameters.repetitions[self.parameters.num_rounds];
-        let scaling_factor = witness.domain.size() / self.parameters.folding_factor;
+        let scaling_factor = witness.domain.len();
         let final_randomness_indexes = utils::dedup(
             (0..final_repetitions).map(|_| utils::squeeze_integer(&mut sponge, scaling_factor)),
         );
@@ -190,7 +189,7 @@ where
     }
 }
 
-impl<F, MerkleConfig, FSConfig> StirProver<F, MerkleConfig, FSConfig>
+impl<F, MerkleConfig, FSConfig> RstirProver<F, MerkleConfig, FSConfig>
 where
     F: FftField + PrimeField + Absorb,
     MerkleConfig: Config<Leaf = Vec<F>>,
@@ -207,44 +206,68 @@ where
     // TODO: Rename to better name
     fn round(
         &self,
+        ni: usize,
+        rou_powers: &Vec<F>,
         sponge: &mut impl CryptographicSponge,
         witness: &WitnessExtended<F, MerkleConfig>,
     ) -> (
         WitnessExtended<F, MerkleConfig>,
         RoundProof<F, MerkleConfig>,
     ) {
-        let g_poly = poly_utils::folding::poly_fold(
-            &witness.polynomial,
-            self.parameters.folding_factor,
-            witness.folding_randomness,
-        );
+        let k = rou_powers.len();
 
-        // TODO: For now, I am FFTing
-        let g_domain = witness.domain.scale_offset(2);
+        //beta_1,...,beta_ni
+        let beta_ni: Vec<F> = sponge.squeeze_field_elements(ni);
 
-        let g_evaluations = g_poly
-            .evaluate_over_domain_by_ref(g_domain.backing_domain)
-            .evals;
+        //get random domain as f_domain(L_i)
+        let mut random_domain = Vec::with_capacity(ni * k);
 
-        let g_folded_evaluations =
-            utils::stack_evaluations(g_evaluations, self.parameters.folding_factor);
-        let g_merkle = MerkleTree::<MerkleConfig>::new(
+        //folded random domain as L^(i+1) = (L_i)^k
+        let mut fold_random_domain = Vec::with_capacity(ni);
+
+        for beta_j in beta_ni {
+            for rou_power in rou_powers {
+                random_domain.push(beta_j * rou_power);
+            }
+            fold_random_domain.push(beta_j.pow([k as u64]));
+        }
+
+        //\hat{h}_{i}
+        let h_poly = witness.polynomial.clone();
+
+        //TODO:just use Horner's method now
+        // f^(i) is the eval of \hat{h}_{i} over random domain L_i
+        let f_evaluations = random_domain
+            .iter()
+            .map(|alpha| h_poly.evaluate(alpha))
+            .collect();
+
+        let f_folded_evaluations =
+            utils::stack_evaluations(f_evaluations, self.parameters.folding_factor);
+        let f_merkle = MerkleTree::<MerkleConfig>::new(
             &self.parameters.leaf_hash_params,
             &self.parameters.two_to_one_params,
-            &g_folded_evaluations,
+            &f_folded_evaluations,
         )
         .unwrap();
-        let g_root = g_merkle.root();
-        sponge.absorb(&g_root);
+        let f_root = f_merkle.root();
+        sponge.absorb(&f_root);
 
         // Out of domain sample
         let ood_randomness = sponge.squeeze_field_elements(self.parameters.ood_samples);
-        let betas: Vec<F> = ood_randomness
+        let gammas: Vec<F> = ood_randomness
             .iter()
-            .map(|alpha| g_poly.evaluate(alpha))
+            .map(|alpha| h_poly.evaluate(alpha))
             .collect();
-        sponge.absorb(&betas);
+        sponge.absorb(&gammas);
 
+        // Proximity generator  TODO: check witness.num_round?
+        // let comb_randomness: Vec<F> = sponge.squeeze_field_elements(self.parameters.ood_samples + self.parameters.repetitions[witness.num_round]);
+
+        // Folding randomness for this round
+        // let folding_randomness: Vec<F> = sponge.squeeze_field_elements(log2(k) as usize);
+
+        //TODO: use 1 elem now
         // Proximity generator
         let comb_randomness: F = sponge.squeeze_field_elements(1)[0];
 
@@ -252,10 +275,11 @@ where
         let folding_randomness = sponge.squeeze_field_elements(1)[0];
 
         // Sample the indexes of L^k that we are going to use for querying the previous Merkle tree
-        let scaling_factor = witness.domain.size() / self.parameters.folding_factor;
+        // let scaling_factor = witness.domain.len() / self.parameters.folding_factor;
         let num_repetitions = self.parameters.repetitions[witness.num_round];
+
         let stir_randomness_indexes = utils::dedup(
-            (0..num_repetitions).map(|_| utils::squeeze_integer(sponge, scaling_factor)),
+            (0..num_repetitions).map(|_| utils::squeeze_integer(sponge, witness.domain.len())),
         );
 
         let pow_nonce = utils::proof_of_work(sponge, self.parameters.pow_bits[witness.num_round]);
@@ -265,11 +289,15 @@ where
 
         // The verifier queries the previous oracle at the indexes of L^k (reading the
         // corresponding evals)
+
+        let shift_challenge_domain = stir_randomness_indexes
+            .iter()
+            .map(|&index| witness.domain[index].clone())
+            .collect();
         let queries_to_prev_ans: Vec<_> = stir_randomness_indexes
             .iter()
             .map(|&index| witness.folded_evals[index].clone())
             .collect();
-
         let queries_to_prev_proof = witness
             .merkle_tree
             .generate_multi_proof(stir_randomness_indexes.clone())
@@ -280,15 +308,10 @@ where
         // First, compute the set of points we are actually going to query at
         let stir_randomness: Vec<_> = stir_randomness_indexes
             .iter()
-            .map(|index| {
-                witness
-                    .domain
-                    .scale(self.parameters.folding_factor)
-                    .element(*index)
-            })
+            .map(|index| witness.domain[*index])
             .collect();
 
-        let beta_answers = betas
+        let gamma_answers = gammas
             .iter()
             .zip(ood_randomness.iter())
             .map(|(y, x)| (*x, *y))
@@ -296,8 +319,8 @@ where
 
         let quotient_answers = stir_randomness
             .iter()
-            .map(|x| (*x, g_poly.evaluate(x)))
-            .chain(beta_answers.into_iter())
+            .map(|x| (*x, h_poly.evaluate(x)))
+            .chain(gamma_answers.into_iter())
             .collect::<Vec<_>>();
 
         // Then compute the set we are quotienting by
@@ -318,7 +341,7 @@ where
         // The quotient_polynomial is then computed
         let vanishing_poly = poly_utils::interpolation::vanishing_poly(&quotient_set);
         // Resue the ans_polynomial to compute the quotient_polynomial
-        let numerator = &g_poly + &ans_polynomial;
+        let numerator = &h_poly + &ans_polynomial;
         let quotient_polynomial = &numerator / &vanishing_poly;
 
         // This is the polynomial 1 + r * x + r^2 * x^2 + ... + r^n * x^n where n = |quotient_set|
@@ -328,67 +351,32 @@ where
                 .collect(),
         );
 
-        let witness_polynomial = &quotient_polynomial * &scaling_polynomial;
+        let g_poly = &quotient_polynomial * &scaling_polynomial;
+
+        //TODO: add folding_randomness
+        let next_h_poly = poly_utils::folding::poly_fold(
+            &g_poly,
+            self.parameters.folding_factor,
+            folding_randomness,
+        );
 
         (
             WitnessExtended {
-                domain: g_domain,
-                polynomial: witness_polynomial,
-                merkle_tree: g_merkle,
-                folded_evals: g_folded_evaluations,
+                domain: fold_random_domain,
+                polynomial: next_h_poly,
+                merkle_tree: f_merkle,
+                folded_evals: f_folded_evaluations,
                 num_round: witness.num_round + 1,
-                folding_randomness,
             },
             RoundProof {
-                g_root,
-                betas,
+                shift_challenge_domain,
+                root: f_root,
+                gammas,
                 queries_to_prev,
                 ans_polynomial,
                 shake_polynomial,
                 pow_nonce,
             },
         )
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::crypto::fields::Field64 as TestField;
-    use ark_ff::Field;
-
-    fn fold_evaluations<F: FftField>(folding: usize, evals: Vec<F>) -> Vec<Vec<F>> {
-        let size_of_new_domain = evals.len() / folding;
-
-        let mut folded_evals = vec![];
-        for i in 0..size_of_new_domain {
-            let mut new_evals = vec![];
-            for j in 0..folding {
-                new_evals.push(evals[i + j * size_of_new_domain]);
-            }
-            folded_evals.push(new_evals);
-        }
-
-        folded_evals
-    }
-
-    #[test]
-    fn test_folding() {
-        let folding = 4;
-        let domain = Domain::<TestField>::new(16, 4).unwrap();
-
-        let elements = domain.elements().collect::<Vec<_>>();
-        let root = elements[1];
-
-        let folded_evals = fold_evaluations(folding, elements.clone());
-
-        let new_size = elements.len() / folding;
-
-        for i in 0..new_size {
-            let index_element = root.pow([(i * folding) as u64]);
-            for j in 0..folding {
-                assert_eq!(folded_evals[i][j].pow([folding as u64]), index_element);
-            }
-        }
     }
 }
